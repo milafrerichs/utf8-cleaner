@@ -10,6 +10,10 @@ module UTF8Cleaner
      "HTTP_COOKIE"
     ]
 
+    SANITIZE_ENV_KEY_IO = [
+      "rack.input"
+    ]
+
     def initialize(app)
      @app = app
     end
@@ -26,6 +30,13 @@ module UTF8Cleaner
 
         if value.include?('%')
           env[key] = URIString.new(value).cleaned
+        end
+      end
+      SANITIZE_ENV_KEY_IO.each do |key|
+        next unless value = env[key]
+        value = env[key].string
+        if value.include?('%')
+          env[key] = StringIO.new(URIString.new(value).cleaned)
         end
       end
       env
